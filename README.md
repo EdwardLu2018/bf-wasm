@@ -1,2 +1,4 @@
 # bf-c
-Brainfuck Interpreter written in C
+Brainfuck interpreter written in C
+
+Usage: ```./bf -f <file.bf>```
