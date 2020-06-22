@@ -9,8 +9,13 @@
 #define DEBUG
 #define MAXLEN 1024
 
-int eval(bf_memory *memory, char *program) {
-    char *c, numloops;
+int eval(char *program) {
+    char *c, closed_braces, open_braces;
+    bf_memory *memory;
+
+    if ((memory = bf_memory_create()) == NULL) {
+        return -1;
+    }
 
     for(int i = 0; program[i] != 0; ++i) {
         switch (program[i]) {
@@ -32,36 +37,50 @@ int eval(bf_memory *memory, char *program) {
             case '.':
                 putchar(bf_memory_get(memory));
                 break;
-            case ']':
-                if (bf_memory_get(memory) != 0) {
-                    numloops = 1;
-                    while (numloops > 0) {
-                        --i;
+            case '[':
+                if (bf_memory_get(memory) == 0) {
+                    open_braces = 1;
+                    // goto matching closing brace
+                    while (open_braces > 0) {
+                        ++i;
                         if (program[i] == '[') {
-                            numloops--;
+                            open_braces++;
                         }
                         else if (program[i] == ']') {
-                            numloops++;
+                            open_braces--;
                         }
                     }
                 }
+                break;
+            case ']':
+                closed_braces = 1;
+                // goto matching open brace
+                while (closed_braces > 0) {
+                    --i;
+                    if (program[i] == '[') {
+                        closed_braces--;
+                    }
+                    else if (program[i] == ']') {
+                        closed_braces++;
+                    }
+                }
+                --i;
                 break;
             default:
                 break;
         }
     }
 
+#ifdef DEBUG
+        bf_memory_print(memory);
+#endif
+
+    bf_memory_free(memory);
+
     return 0;
 }
 
 int main(int argc, char* argv[]) {
-    bf_memory *memory;
-
-    memory = bf_memory_create();
-    if (memory == NULL) {
-        return -1;
-    }
-
     char *filename = NULL;
     char *usg = "Usage: ./bf -f <file.bf>\n";
 
@@ -97,17 +116,8 @@ int main(int argc, char* argv[]) {
         fread(buffer, 1, length, fileptr);
     }
 
-    // while (fgets(program, MAXLEN, fileptr) != NULL) {
-    //     eval(memory, program);
-    //     // printf("%s %lu\n", program, strlen(program));
-    // }
-    eval(memory, buffer);
+    eval(buffer);
 
-    #ifdef DEBUG
-        bf_memory_print(memory);
-    #endif
-
-    bf_memory_free(memory);
     free(buffer);
     fclose(fileptr);
 
