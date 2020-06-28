@@ -5,8 +5,8 @@
 
 #include "bf_mem.h"
 
-bf_memory *bf_memory_create() {
-    bf_memory *memory = (bf_memory *)malloc(sizeof(bf_memory));
+bf_mem *bf_mem_create() {
+    bf_mem *memory = (bf_mem *)malloc(sizeof(bf_mem));
     if (memory == NULL) {
         printf("malloc failed\n");
         exit(0);
@@ -17,21 +17,21 @@ bf_memory *bf_memory_create() {
     return memory;
 }
 
-char bf_memory_get(bf_memory *memory) {
+char bf_mem_get(bf_mem *memory) {
     return memory->contents[memory->curr_idx];
 }
 
-int bf_memory_incr(bf_memory *memory) {
+int bf_mem_incr(bf_mem *memory) {
     memory->contents[memory->curr_idx]++;
     return 0;
 }
 
-int bf_memory_decr(bf_memory *memory) {
+int bf_mem_decr(bf_mem *memory) {
     memory->contents[memory->curr_idx]--;
     return 0;
 }
 
-int bf_memory_append(bf_memory *memory) {
+static int bf_mem_append(bf_mem *memory) {
     char *new_contents;
 
     ++memory->size;
@@ -44,37 +44,37 @@ int bf_memory_append(bf_memory *memory) {
     return 0;
 }
 
-int bf_memory_move_right(bf_memory *memory) {
-    ++memory->curr_idx;
-    if (memory->curr_idx >= memory->size) {
-        bf_memory_append(memory);
-    }
-    return 0;
-}
-
-int bf_memory_put(bf_memory *memory, char c) {
-    memory->contents[memory->curr_idx] = c;
-    return 0;
-}
-
-int bf_memory_move_left(bf_memory *memory) {
+int bf_mem_move_left(bf_mem *memory) {
     if (memory->curr_idx > 0) {
         --memory->curr_idx;
     }
     return 0;
 }
 
-int bf_memory_free(bf_memory *memory) {
+int bf_mem_move_right(bf_mem *memory) {
+    ++memory->curr_idx;
+    if (memory->curr_idx >= memory->size) {
+        bf_mem_append(memory);
+    }
+    return 0;
+}
+
+int bf_mem_put(bf_mem *memory, char c) {
+    memory->contents[memory->curr_idx] = c;
+    return 0;
+}
+
+int bf_mem_free(bf_mem *memory) {
     free(memory->contents);
     free(memory);
     return 0;
 }
 
-void bf_memory_print(bf_memory *memory) {
+void bf_mem_print(bf_mem *memory) {
     printf("\n-- Memory --\n");
     for (size_t i = 0; i < memory->size; i++) {
         printf("[%d]", memory->contents[i]);
-        if (i != 0 && i % 10 == 0)
+        if (i != 0 && i % 15 == 0)
             printf("\n");
     }
     printf("\n");

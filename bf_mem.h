@@ -10,17 +10,16 @@ typedef struct {
     char *contents;
     uint16_t size;
     uint16_t curr_idx;
-} bf_memory;
+} bf_mem;
 
-bf_memory *bf_memory_create();
-char bf_memory_get(bf_memory *memory);
-int bf_memory_incr(bf_memory *memory);
-int bf_memory_decr(bf_memory *memory);
-int bf_memory_append(bf_memory *memory);
-int bf_memory_move_right(bf_memory *memory);
-int bf_memory_put(bf_memory *memory, char c);
-int bf_memory_move_left(bf_memory *memory);
-int bf_memory_free(bf_memory *memory);
-void bf_memory_print(bf_memory *memory);
+bf_mem *bf_mem_create();
+char bf_mem_get(bf_mem *memory);
+int bf_mem_incr(bf_mem *memory);
+int bf_mem_decr(bf_mem *memory);
+int bf_mem_move_right(bf_mem *memory);
+int bf_mem_move_left(bf_mem *memory);
+int bf_mem_put(bf_mem *memory, char c);
+int bf_mem_free(bf_mem *memory);
+void bf_mem_print(bf_mem *memory);
 
 #endif // MEM_H

@@ -3,68 +3,67 @@
 #include <stdint.h>
 #include <getopt.h>
 #include <string.h>
+#include <assert.h>
 
 #include "bf_mem.h"
+#include "bf_stack.h"
+#include "bf_jmp_dict.h"
 
-//#define DEBUG
-#define MAXLEN 1024
+// #define DEBUG
 
-int eval(char *program) {
-    char *c, closed_braces, open_braces;
-    bf_memory *memory;
+static bf_jmp_dict *create_jmp_dict(char *program, long length) {
+    uint32_t pos, jmp;
+    bf_stack *stack = NULL;
+    bf_jmp_dict *dict = bf_jmp_dict_create(length / 10);
 
-    if ((memory = bf_memory_create()) == NULL) {
-        return -1;
+    for (uint32_t pc = 0; program[pc] != 0; ++pc) {
+        if (program[pc] == '[') {
+            bf_stack_push(&stack, pc);
+        }
+        if (program[pc] == ']') {
+            pos = bf_stack_pop(&stack);
+            jmp = pc;
+            bf_jmp_dict_insert(dict, pos, jmp);
+            bf_jmp_dict_insert(dict, jmp, pos);
+        }
     }
+    assert(stack == NULL);
+    return dict;
+}
 
-    for(int i = 0; program[i] != 0; ++i) {
-        switch (program[i]) {
+int eval(char *program, long length) {
+    bf_mem *memory = bf_mem_create();
+    bf_jmp_dict *dict = create_jmp_dict(program, length);
+
+    for (uint32_t pc = 0; program[pc] != 0; ++pc) {
+        switch (program[pc]) {
             case '+':
-                bf_memory_incr(memory);
+                bf_mem_incr(memory);
                 break;
             case '-':
-                bf_memory_decr(memory);
+                bf_mem_decr(memory);
                 break;
             case '<':
-                bf_memory_move_left(memory);
+                bf_mem_move_left(memory);
                 break;
             case '>':
-                bf_memory_move_right(memory);
+                bf_mem_move_right(memory);
                 break;
             case ',':
-                bf_memory_put(memory, getchar());
+                bf_mem_put(memory, getchar());
                 break;
             case '.':
-                putchar(bf_memory_get(memory));
+                putchar(bf_mem_get(memory));
                 break;
             case '[':
-                // if *memory == 0, then go to the end of the loop
-                if (bf_memory_get(memory) == 0) {
-                    open_braces = 1;
-                    while (open_braces > 0) {
-                        ++i;
-                        if (program[i] == '[') {
-                            open_braces++;
-                        }
-                        else if (program[i] == ']') {
-                            open_braces--;
-                        }
-                    }
+                if (bf_mem_get(memory) == 0) {
+                    pc = bf_jmp_dict_get(dict, pc);
                 }
                 break;
             case ']':
-                closed_braces = 1;
-                // go to right before the beginning of the loop
-                while (closed_braces > 0) {
-                    --i;
-                    if (program[i] == '[') {
-                        closed_braces--;
-                    }
-                    else if (program[i] == ']') {
-                        closed_braces++;
-                    }
+                if (bf_mem_get(memory) != 0) {
+                    pc = bf_jmp_dict_get(dict, pc);
                 }
-                --i; // go to before the first '[' of the loop
                 break;
             default:
                 break;
@@ -72,10 +71,12 @@ int eval(char *program) {
     }
 
 #ifdef DEBUG
-        bf_memory_print(memory);
+        bf_mem_print(memory);
+        bf_jmp_dict_print(dict);
 #endif
 
-    bf_memory_free(memory);
+    bf_mem_free(memory);
+    bf_jmp_dict_free(dict);
 
     return 0;
 }
@@ -84,7 +85,7 @@ int main(int argc, char* argv[]) {
     int opt;
     long length;
     FILE *fileptr;
-    char *filename = NULL, program[MAXLEN], *buf = 0;;
+    char *filename = NULL, *program = 0;
     char *usg = "Usage: ./bf -f <file.bf>\n";
 
     // parse arguments
@@ -106,17 +107,21 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
 
+    // get text of file as string
     fseek(fileptr, 0, SEEK_END);
     length = ftell(fileptr);
     fseek(fileptr, 0, SEEK_SET);
-    buf = malloc(length);
-    if (buf) {
-        fread(buf, 1, length, fileptr);
+    program = malloc(length);
+    if (program == NULL) {
+        printf("malloc failed\n");
+        exit(0);
     }
+    fread(program, 1, length, fileptr);
 
-    eval(buf);
+    // eval program
+    eval(program, length);
 
-    free(buf);
+    free(program);
     fclose(fileptr);
 
     return 0;
