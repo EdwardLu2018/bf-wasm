@@ -1,4 +1,6 @@
 # bf-c
 Brainfuck interpreter written in C
 
-Usage: ```./bf -f <file.bf>```
+Run make to compile: ```make```
+
+Usage: ```./bf -f <file>.bf```
