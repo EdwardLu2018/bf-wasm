@@ -12,3 +12,5 @@ Type brainf--k code in the textbox, press "Execute", and see output in the conso
 Mandelbrot set fractal generator ([found here](https://github.com/erikdubbelboer/brainfuck-jit/blob/master/mandelbrot.bf)) running in the browser:
 
 ![web-screenshot](./web-screenshot.png)
+
+Note: Input (,) is a work in progress. Emscripten's bindings of getchar() are a bit iffy.
