@@ -13,11 +13,11 @@ bf_mem *bf_mem_create() {
     }
     memory->curr_idx = 0;
     memory->size = 1;
-    memory->contents = (char *)calloc(memory->size, sizeof(char));
+    memory->contents = (uint8_t *)calloc(memory->size, sizeof(uint8_t));
     return memory;
 }
 
-char bf_mem_get(bf_mem *memory) {
+uint8_t bf_mem_get(bf_mem *memory) {
     return memory->contents[memory->curr_idx];
 }
 
@@ -32,14 +32,15 @@ int bf_mem_decr(bf_mem *memory) {
 }
 
 static int bf_mem_append(bf_mem *memory) {
-    char *new_contents;
+    uint8_t *new_contents;
 
     ++memory->size;
-    new_contents = (char *)realloc(memory->contents, memory->size * sizeof(char));
+    new_contents = (uint8_t *)realloc(memory->contents, memory->size * sizeof(uint8_t));
     if (new_contents == NULL) {
         printf("realloc failed\n");
         exit(0);
     }
+    new_contents[memory->size-1] = 0;
     memory->contents = new_contents;
     return 0;
 }
@@ -59,7 +60,7 @@ int bf_mem_move_right(bf_mem *memory) {
     return 0;
 }
 
-int bf_mem_put(bf_mem *memory, char c) {
+int bf_mem_put(bf_mem *memory, uint8_t c) {
     memory->contents[memory->curr_idx] = c;
     return 0;
 }

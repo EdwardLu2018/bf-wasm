@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="chrome=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <script type="text/javascript" src="bf.js"></script>
+
+        <title>Webassembly Brainf--k Interpreter</title>
+    </head>
+    <body>
+        <textarea id="program" rows="25" cols="50"></textarea>
+        <br>
+        <button onclick="clicked()">Execute</button>
+
+        <script type="text/javascript">
+            class BF_Interpreter {
+                constructor() {
+                    let _this = this;
+                    BFWASM().then(function (Module) {
+                        _this.onWasmInit(Module);
+                    });
+                }
+
+                onWasmInit(Module) {
+                    this._Module = Module;
+                }
+
+                eval(program) {
+                    if (program.length <= 0) return 0;
+                    const program_ptr = this._Module._malloc(program.length);
+                    const program_arr = new TextEncoder("utf-8").encode(program);
+                    this._Module.HEAPU8.set(program_arr, program_ptr);
+                    console.time("Execution Time")
+                    const status = this._Module.ccall(
+                        "eval",
+                        "number",
+                        ["number", "number"],
+                        [program_ptr, program.length]
+                    );
+                    console.timeEnd("Execution Time")
+                    this._Module._free(program_ptr);
+                    return status;
+                }
+            }
+
+            let interpreter = new BF_Interpreter();
+
+            function clicked() {
+                const program = document.getElementById("program").value;
+                interpreter.eval(program);
+            }
+        </script>
+    </body>
+</html>
