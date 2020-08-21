@@ -15,9 +15,11 @@ static bf_jmp_dict *create_jmp_dict(char *program, long length) {
     uint32_t pos, jmp;
     bf_stack *stack = NULL;
     bf_jmp_dict *dict = bf_jmp_dict_create(length / 10);
+    char contains_loop = 0;
 
     for (uint32_t pc = 0; pc < length; ++pc) {
         if (program[pc] == '[') {
+            if (!contains_loop) contains_loop = 1;
             bf_stack_push(&stack, pc);
         }
         if (program[pc] == ']') {
@@ -27,7 +29,9 @@ static bf_jmp_dict *create_jmp_dict(char *program, long length) {
             bf_jmp_dict_insert(dict, jmp, pos);
         }
     }
-    assert(stack == NULL);
+    if (contains_loop) {
+        assert(stack == NULL);
+    }
     return dict;
 }
 
